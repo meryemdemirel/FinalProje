@@ -1,0 +1,70 @@
+---
+  title: "Proje Rapor : Meryem Demirel 210401076"
+output:
+  html_document:
+  df_print: paged
+---
+  
+# Q1 : Problem tanımı
+  
+  Şirketimiz **bir inşaat şirketidir**. Problemimiz *Kaliforniya eyaletinde ki yaşı büyük oda sayısı az evlerini bulmaktır*.Şu anda üzerinde çalıştığımız ana sorun, Kaliforniya eyaletindeki konut projelerinde karşılaştığımız belirli bir durumu çözmektir. Problemimiz, yaşları daha büyük olan ve genellikle daha küçük odalara sahip olan evleri tespit etmektir. Bu tür evlerin belirlenmesi, konut projelerimizde stratejik planlama ve kaynak yönetimi konularında önemli bir rol oynamaktadır.
+  
+# Q2 : Proje Amacı 
+[California House Price](https://www.kaggle.com/datasets/shibumohapatra/house-price/data) adli Kaggle veri setini kullanarak iş problemini  **data analizing** yöntemini kullanarak çözmeyi amaçlıyoruz. Bu sayede eski ve dar evleri bulup onları yeniden inşa edebileceğiz. Bunun yanında eski ama geniş evleri de bir iç mimarlık hizmeti vererek restore etmeyi amaçlıyoruz. Gelen müşterinin istekleri doğrultusunda da (uygun ev fiyatı oda sayısı gibi) onlara bir emlak hizmeti sunmayı hedefliyoruz.
+
+
+# Q3 : Veri seti keşifsel analizi
+
+ABD Nüfus Sayım Bürosu, Kaliforniya'daki her blok grubu için nüfus, medyan gelir, medyan konut fiyatı vb. gibi 10 tür metriğe sahip Kaliforniya Nüfus Sayımı Verilerini yayınladı. Veri kümesi ayrıca proje kapsamı için bir girdi görevi görür ve bunun için işlevsel ve işlevsel olmayan r gereksinimlerini belirtmeye çalışır.Bu proje için önemli sütunlar pdf("my_plot.pdf", width = 4, height = imedian_house_age(int), total_rooms(int) ve median_house_value(int). 
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+# Veri dosyasını internetten indir ve git repo'sunun içine commitle
+# filename <- "Yoga and Meditation - Form Responses 1.csv"
+
+# Dosyayi ithal et
+library(readr)
+library(dplyr)
+library(ggplot2)
+
+
+veri <- read.csv("C:/Users/mrymd/Downloads/archive (1)/1553768847-housing.csv")
+```
+
+Veri seti Kaggle web sitesinden indirilmiştir ve **readr::read_csv()** fonksiyonu kullanılarak **`r class(veri)[[1]]`** tipinde bir değişkene ithal edilmiştir. Veri boyutları aşağıdaki gibidir :
+  
+- Satir sayisi : `20640`
+- Sütun sayisi : `10`
+
+Veri setinin ön görsellemesi aşağıda verilmiştir.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+# Install ggplot2 package if not installed
+if (!requireNamespace("ggplot2", quietly = TRUE)) {
+  install.packages("ggplot2")
+}
+
+# Load the ggplot2 package
+library(ggplot2)
+
+# Your ggplot code
+ggplot(veri, aes(x = housing_median_age, y = total_rooms)) +
+  geom_point() +
+  labs(title = "Scatter Plot",
+       x = "housing_median_age",
+       y = "total_rooms")
+
+```
+Veri setindeki house_median_value değerini dolar'dan TL'ye dönüştüreceğiz.Herhangi bir tip dönüşümü olmayacak sadece değer dönüşümü olacak. 
+
+Diğer sütunlardaki değişkenlere ihtiyaç duymayacağımızdan onları sileceğiz.
+
+Evlerin yaş verilerinin dağılımı aşağıdaki histogramda gösterilmiştir.
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(veri, aes(x = housing_median_age)) +
+  geom_histogram(binwidth = 1, fill = "blue", color = "black") +
+  labs(title = "Histogram",
+       x = "housing_median_age",
+       y = "frekans")
+```
+
+Görüldüğü üzere verilerin büyük çoğunluğu 15-35 yıl aralığından gelmektedir ve bunun manası bu yaştaki evlerin çok olduğudur. 
