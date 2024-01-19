@@ -1,0 +1,11 @@
+---
+  title: "Proje Rapor : Meryem Demirel 210401076"
+output:
+  html_document:
+  df_print: paged
+---
+  
+# Q1 : Problem tanımı
+  
+  Şirketimiz **bir inşaat şirketidir**. Problemimiz *Kaliforniya eyaletinde ki yaşı büyük oda sayısı az evlerini bulmaktır*.Şu anda üzerinde çalıştığımız ana sorun, Kaliforniya eyaletindeki konut projelerinde karşılaştığımız belirli bir durumu çözmektir. Problemimiz, yaşları daha büyük olan ve genellikle daha küçük odalara sahip olan evleri tespit etmektir. Bu tür evlerin belirlenmesi, konut projelerimizde stratejik planlama ve kaynak yönetimi konularında önemli bir rol oynamaktadır.
+  
