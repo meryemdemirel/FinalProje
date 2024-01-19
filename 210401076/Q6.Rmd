@@ -1,0 +1,260 @@
+---
+  title: "Proje Rapor : Meryem Demirel 210401076"
+output:
+  html_document:
+  df_print: paged
+---
+  
+# Q1 : Problem tanımı
+  
+  Şirketimiz **bir inşaat şirketidir**. Problemimiz *Kaliforniya eyaletinde ki yaşı büyük oda sayısı az evlerini bulmaktır*.Şu anda üzerinde çalıştığımız ana sorun, Kaliforniya eyaletindeki konut projelerinde karşılaştığımız belirli bir durumu çözmektir. Problemimiz, yaşları daha büyük olan ve genellikle daha küçük odalara sahip olan evleri tespit etmektir. Bu tür evlerin belirlenmesi, konut projelerimizde stratejik planlama ve kaynak yönetimi konularında önemli bir rol oynamaktadır.
+
+# Q2 : Proje Amacı 
+[California House Price](https://www.kaggle.com/datasets/shibumohapatra/house-price/data) adli Kaggle veri setini kullanarak iş problemini  **data analizing** yöntemini kullanarak çözmeyi amaçlıyoruz. Bu sayede eski ve dar evleri bulup onları yeniden inşa edebileceğiz. Bunun yanında eski ama geniş evleri de bir iç mimarlık hizmeti vererek restore etmeyi amaçlıyoruz. Gelen müşterinin istekleri doğrultusunda da (uygun ev fiyatı oda sayısı gibi) onlara bir emlak hizmeti sunmayı hedefliyoruz.
+
+# Q3 : Veri seti keşifsel analizi
+
+ABD Nüfus Sayım Bürosu, Kaliforniya'daki her blok grubu için nüfus, medyan gelir, medyan konut fiyatı vb. gibi 10 tür metriğe sahip Kaliforniya Nüfus Sayımı Verilerini yayınladı. Veri kümesi ayrıca proje kapsamı için bir girdi görevi görür ve bunun için işlevsel ve işlevsel olmayan r gereksinimlerini belirtmeye çalışır.Bu proje için önemli sütunlar pdf("my_plot.pdf", width = 4, height = imedian_house_age(int), total_rooms(int) ve median_house_value(int). 
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+# Veri dosyasını internetten indir ve git repo'sunun içine commitle
+# filename <- "Yoga and Meditation - Form Responses 1.csv"
+
+# Dosyayi ithal et
+library(readr)
+library(dplyr)
+library(ggplot2)
+
+
+veri <- read.csv("C:/Users/mrymd/Downloads/archive (1)/1553768847-housing.csv")
+```
+
+Veri seti Kaggle web sitesinden indirilmiştir ve **readr::read_csv()** fonksiyonu kullanılarak **`r class(veri)[[1]]`** tipinde bir değişkene ithal edilmiştir. Veri boyutları aşağıdaki gibidir :
+  
+- Satir sayisi : `20640`
+- Sütun sayisi : `10`
+
+Veri setinin ön görsellemesi aşağıda verilmiştir.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+# Install ggplot2 package if not installed
+if (!requireNamespace("ggplot2", quietly = TRUE)) {
+  install.packages("ggplot2")
+}
+
+# Load the ggplot2 package
+library(ggplot2)
+
+# Your ggplot code
+ggplot(veri, aes(x = housing_median_age, y = total_rooms)) +
+  geom_point() +
+  labs(title = "Scatter Plot",
+       x = "housing_median_age",
+       y = "total_rooms")
+
+```
+Veri setindeki house_median_value değerini dolar'dan TL'ye dönüştüreceğiz.Herhangi bir tip dönüşümü olmayacak sadece değer dönüşümü olacak. 
+
+Diğer sütunlardaki değişkenlere ihtiyaç duymayacağımızdan onları sileceğiz.
+
+Evlerin yaş verilerinin dağılımı aşağıdaki histogramda gösterilmiştir.
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(veri, aes(x = housing_median_age)) +
+  geom_histogram(binwidth = 1, fill = "blue", color = "black") +
+  labs(title = "Histogram",
+       x = "housing_median_age",
+       y = "frekans")
+```
+
+Görüldüğü üzere verilerin büyük çoğunluğu 15-35 yıl aralığından gelmektedir ve bunun manası bu yaştaki evlerin çok olduğudur. 
+
+
+
+
+# Q4 : Veri seti ön işlemesi
+
+## median_house_value sütunu
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+  # 5. Dönüşüm: EUR para birimindeki satış verilerini TRY'ye çevirme 
+   veri$median_house_value <- veri$median_house_value * 32
+
+```
+
+
+## burayı silebilirim tekrar bakalım
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+
+
+
+# 3. Eksik verileri düzenleme
+veri[veri == -999] <- NA  # Örnek: -999 değerlerini NA yapma
+veri[veri == "yok"] <- NA  # Örnek: "yok" değerlerini NA yapma
+
+# 4. Belirli bir sütundaki NA değerlerini temizleme (örneğin "sutun_adi")
+veri <- veri[complete.cases(veri$longitude), ]
+
+
+# 6. Veri setinin özetini gösterme
+summary(veri)
+```
+
+## Burda diğer ilgilenmeyeceğim sütunları sildim
+
+```{r}
+
+veri <- read.csv("C:/Users/mrymd/Downloads/archive (1)/1553768847-housing.csv")
+veri <- subset(veri, select = -c(longitude))
+veri <- subset(veri, select = -c(latitude))
+veri <- subset(veri, select = -c(total_bedrooms))
+veri <- subset(veri, select = -c(population))
+veri <- subset(veri, select = -c(households))
+veri <- subset(veri, select = -c(median_income))
+veri <- subset(veri, select = -c(ocean_proximity))
+
+
+summary(veri)
+```
+
+
+
+# Q5 : Veri mühendisliği 
+
+```{r}
+# Analiz Adımları
+# 1. Grafik çizme
+ggplot(veri, aes(x = housing_median_age, y = median_house_value)) +
+  geom_point() +
+  labs(title = "Ev Yaşı ve Ortalama Fiyat")
+
+# 2. İstatistiksel Operasyonlar
+summary(veri)
+
+# 3. Kategorilere Ayırma
+# Örneğin, ev yaşı kategorilerine ayırma
+veri$Age_Category <- cut(veri$housing_median_age, breaks = c(0, 10, 20, 30, 40, 50),
+                                    labels = c("0-10", "11-20", "21-30", "31-40", "41-50"))
+
+# 4. Kategorilere Ayrı İstatistiksel Operasyonlar
+aggregate(median_house_value ~ housing_median_age, data = veri, FUN = mean)
+
+
+
+# Veri setini görüntüleme
+head(veri)
+
+
+```
+
+
+
+
+
+
+
+# Q6 : Veri analizi
+
+
+```{r}
+library(dplyr)
+# Kategorilere göre ortalama ev değeri hesaplama
+ortalama_ev_degerleri_kategori <- veri %>%
+  group_by(housing_median_age) %>%
+  summarise(median_house_value = mean(housing_median_age))
+
+# Sonuçları görüntüleme
+print(ortalama_ev_degerleri_kategori)
+
+```
+
+
+
+
+
+```{r}
+# Scatter plot
+plot(veri$housing_median_age, veri$median_house_value, main = "Ev Degeri ve Yaş Histogramı", xlab = "Ev Yaşı", ylab = "Ev Degeri")
+
+```
+```{r}
+# Gerekli kütüphaneleri yükleme
+library(dplyr)
+library(kableExtra)
+
+# Evin yaşının 30'dan büyük ve toplam oda sayısının 3'ten küçük olduğu durumları filtreleme
+filtreli_veri <- veri %>%
+  filter(housing_median_age > 30, total_rooms < 4000)
+
+# Tabloyu oluşturma
+tablo <- kable(filtreli_veri, format = "html") %>%
+  kable_styling()
+
+# Tabloyu görüntüleme
+print(tablo)
+
+
+```
+
+
+```{r}
+# Gerekli kütüphaneleri yükleme
+library(dplyr)
+library(ggplot2)
+
+# Evin yaşına göre ortalama fiyatları hesaplama
+ortalama_fiyatlar <- veri %>%
+  group_by(housing_median_age) %>%
+  summarise(Ortalama_Fiyat = mean(median_house_value))
+
+# Bar plot ile görselleştirme
+ggplot(ortalama_fiyatlar, aes(x = housing_median_age, y = Ortalama_Fiyat)) +
+  geom_bar(stat = "identity", fill = "blue") +
+  labs(title = "Evin Yaşına Gore Ortalama Fiyatlar",
+       x = "Ev Yaşı",
+       y = "Ortalama Fiyat")
+
+```
+
+```{r}
+# Gerekli kütüphaneleri yükleme
+library(dplyr)
+library(ggplot2)
+
+# Evin yaşına göre ortalama fiyatları hesaplama
+ortalama_fiyatlar <- veri %>%
+  group_by(total_rooms) %>%
+  summarise(Ortalama_Fiyat = mean(median_house_value))
+
+# Bar plot ile görselleştirme
+ggplot(ortalama_fiyatlar, aes(x = total_rooms, y = Ortalama_Fiyat)) +
+  geom_bar(stat = "identity", fill = "blue") +
+  labs(title = "Evin Oda Sayısına Gore Ortalama Fiyatlar",
+       x = "Oda Sayısı",
+       y = "Ortalama Fiyat")
+
+```
+
+
+
+
+
+
+```{r}
+# Gerekli kütüphaneleri yükleme
+library(dplyr)
+library(ggplot2)
+
+# Evin yaşına göre ortalama fiyatları hesaplama
+toplam_oda <- veri %>%
+  group_by(housing_median_age) %>%
+  summarise(toplam_oda = mean(total_rooms))
+
+# Bar plot ile görselleştirme
+ggplot(toplam_oda, aes(x = housing_median_age, y = toplam_oda)) +
+  geom_bar(stat = "identity", fill = "blue") +
+  labs(title = "Evin Yaşına Gore Ortalama Toplam oda Sayısı",
+       x = "Ev Yaşı",
+       y = "Oda Sayısı")
+
+```
+
